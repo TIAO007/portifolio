@@ -26,6 +26,30 @@
     a{color:var(--text); text-decoration:none; transition:color .15s, transform .12s, border-color .15s, background .15s}
     a:hover{color:var(--outline-hover); transform:translateY(-1px)}
     .container{max-width:1020px; margin:0 auto; padding:28px; position:relative; z-index:2}
+    /* Sobre mim — texto corrido e justificado ocupando toda a largura do card */
+#about .card { padding-left: 18px; padding-right: 18px; }  /* opcional: menos “respiro” */
+
+#about .card .bio,
+#about .card .bio-compact{
+  display:block;
+  width:100%;
+  max-width:100% !important;
+  margin:0;
+  text-align:justify;
+  text-justify: inter-word;
+  hyphens:auto;
+  -webkit-hyphens:auto;
+  line-height:1.55;
+}
+
+/* garantir que nada dentro do card limite a largura */
+#about .card p,
+#about .card *[style*="max-width"]{ max-width:100% !important; }
+
+@media (max-width:480px){
+  #about .card .bio,
+  #about .card .bio-compact{ line-height:1.5; }
+}
 
     /* fundo com grafos */
     #bg{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;
