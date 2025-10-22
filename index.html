@@ -3,6 +3,105 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
+  <!-- Python no navegador (Pyodide) -->
+<script defer src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
+<!-- Runner para todos os códigos Python nas páginas -->
+<script defer id="py-runner-init">
+  window.__PY_RUNNER__ = (function(){
+    let pyodidePromise = null;
+
+    async function getPyodide() {
+      if (!pyodidePromise) {
+        pyodidePromise = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
+      }
+      return pyodidePromise;
+    }
+
+    function makePanel(pre){
+      const wrap = document.createElement('div');
+      wrap.className = 'py-panel';
+      wrap.innerHTML = `
+        <div class="py-row">
+          <textarea class="py-stdin" placeholder="Valores para input() — um por linha"></textarea>
+          <div class="py-actions">
+            <button class="btn py-run">Executar</button>
+            <button class="btn py-clear">Limpar</button>
+          </div>
+        </div>
+        <div class="py-out" aria-live="polite"></div>
+      `;
+      pre.insertAdjacentElement('afterend', wrap);
+
+      const btnRun   = wrap.querySelector('.py-run');
+      const btnClear = wrap.querySelector('.py-clear');
+      const stdinTA  = wrap.querySelector('.py-stdin');
+      const outDiv   = wrap.querySelector('.py-out');
+
+      btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; };
+
+      btnRun.onclick = async () => {
+        btnRun.disabled = true; outDiv.textContent = "Executando…";
+        try {
+          const py = await getPyodide();
+          const code = pre.innerText;
+          const inputs = stdinTA.value.replace(/\r\n/g, "\n");
+          const runner = `
+import sys, io, builtins
+_input_lines = """${inputs}""".splitlines()
+_input_idx = 0
+def input(prompt=None):
+    global _input_idx, _input_lines
+    if _input_idx >= len(_input_lines):
+        raise EOFError("Sem linhas suficientes em 'input()'.")
+    val = _input_lines[_input_idx]
+    _input_idx += 1
+    return val
+_stdout = io.StringIO()
+_stderr = io.StringIO()
+_sys_stdout, _sys_stderr = sys.stdout, sys.stderr
+sys.stdout, sys.stderr = _stdout, _stderr
+try:
+${code.split('\n').map(l => '    ' + l).join('\n')}
+finally:
+    sys.stdout, sys.stderr = _sys_stdout, _sys_stderr
+out = _stdout.getvalue()
+err = _stderr.getvalue()
+          `;
+          await py.runPythonAsync(runner);
+          const out = py.globals.get('out');
+          const err = py.globals.get('err');
+          outDiv.innerHTML = "";
+          if (out && out.toString().trim()) {
+            outDiv.innerHTML += `<pre class="py-stdout">${escapeHtml(out.toString())}</pre>`;
+          }
+          if (err && err.toString().trim()) {
+            outDiv.innerHTML += `<pre class="py-stderr">${escapeHtml(err.toString())}</pre>`;
+          }
+          if (!outDiv.innerHTML) outDiv.textContent = "✔️ Concluído (sem saída).";
+        } catch(e){
+          outDiv.innerHTML = `<pre class="py-stderr">${escapeHtml(String(e))}</pre>`;
+        } finally {
+          btnRun.disabled = false;
+        }
+      };
+    }
+
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+    }
+
+    function autowire(){
+      const pres = document.querySelectorAll('pre[data-lang="python"], .exercise-card.python pre, .card.python pre, .py-code pre, pre[data-py]');
+      pres.forEach(pre => { if (!pre.__wired) { pre.__wired = true; makePanel(pre); } });
+    }
+
+    document.addEventListener('DOMContentLoaded', autowire);
+    window.addEventListener('load', autowire);
+    return { wireAll: autowire };
+  })();
+</script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RONALDO MATESCO — Portfólio</title>
   <meta name="description" content="Portfólio minimalista e futurista com grafos ao fundo, conteúdo transparente e download de currículo.">
