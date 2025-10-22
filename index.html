@@ -100,14 +100,40 @@
   <strong>automação com n8n</strong>, <strong>SQL</strong> e fundamentos de <strong>IA</strong> — .
 </p>
 
-        <div class="row" style="margin-top:12px">
+       <!-- === Bloco de botões (substituir o antigo por este) === -->
+<div class="row" style="margin-top:12px">
   <a class="btn" target="_blank" href="https://www.linkedin.com/in/ronaldo-matesco-239b381ab">LinkedIn</a>
   <a class="btn" href="mailto:ronaldobh137@gmail.com">Contato</a>
-  <a class="btn" target="_blank" rel="noopener"
-     href="https://wa.me/5531987871531?text=Ol%C3%A1%2C%20vi%20seu%20portf%C3%B3lio%20RONALDO%20MATESCO%20e%20gostaria%20de%20conversar.">
-     WhatsApp
+
+  <!-- WhatsApp (compatível mobile e desktop) -->
+  <a class="btn" id="btn-wa-portfolio" target="_blank" rel="noopener" href="#">
+    WhatsApp
   </a>
 </div>
+
+<script>
+  // WhatsApp compatível (detecta mobile/desktop e abre a rota mais estável)
+  (function () {
+    const btn = document.getElementById('btn-wa-portfolio');
+    if (!btn) return;
+
+    const numero = '5531987871531'; // 55 + DDD + número (sem espaços/traços)
+    const mensagem = 'Olá, vi seu portfólio RONALDO MATESCO e gostaria de conversar.';
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+
+      // Em alguns navegadores "wa.me" não abre dentro de webview; a rota "api.whatsapp.com" costuma ser mais confiável no desktop
+      const url = isMobile
+        ? `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`
+        : `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensagem)}`;
+
+      // abre em nova aba/janela
+      window.open(url, '_blank', 'noopener');
+    });
+  })();
+</script>
 
 
           <!-- Currículo -->
