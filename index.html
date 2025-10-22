@@ -9,14 +9,12 @@
 <script defer id="py-runner-init">
   window.__PY_RUNNER__ = (function(){
     let pyodidePromise = null;
-
     async function getPyodide() {
       if (!pyodidePromise) {
         pyodidePromise = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
       }
       return pyodidePromise;
     }
-
     function makePanel(pre){
       const wrap = document.createElement('div');
       wrap.className = 'py-panel';
@@ -31,14 +29,11 @@
         <div class="py-out" aria-live="polite"></div>
       `;
       pre.insertAdjacentElement('afterend', wrap);
-
       const btnRun   = wrap.querySelector('.py-run');
       const btnClear = wrap.querySelector('.py-clear');
       const stdinTA  = wrap.querySelector('.py-stdin');
       const outDiv   = wrap.querySelector('.py-out');
-
       btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; };
-
       btnRun.onclick = async () => {
         btnRun.disabled = true; outDiv.textContent = "Executando…";
         try {
@@ -85,22 +80,18 @@ err = _stderr.getvalue()
         }
       };
     }
-
     function escapeHtml(s){
       return s.replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
     }
-
     function autowire(){
       const pres = document.querySelectorAll('pre[data-lang="python"], .exercise-card.python pre, .card.python pre, .py-code pre, pre[data-py]');
       pres.forEach(pre => { if (!pre.__wired) { pre.__wired = true; makePanel(pre); } });
     }
-
     document.addEventListener('DOMContentLoaded', autowire);
     window.addEventListener('load', autowire);
     return { wireAll: autowire };
   })();
 </script>
-
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RONALDO MATESCO — Portfólio</title>
   <meta name="description" content="Portfólio minimalista e futurista com grafos ao fundo, conteúdo transparente e download de currículo.">
@@ -205,7 +196,6 @@ err = _stderr.getvalue()
 }
 .py-stderr{border-color:#b54b4b;color:#ffdede}
 </style>
-
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
   <div id="veil"></div>
@@ -218,11 +208,10 @@ err = _stderr.getvalue()
           <p class="welcome">Seja bem-vindo ao meu portfólio.</p>
           <h1>RONALDO MATESCO</h1>
           <div style="text-align:center"><span class="pill">Sou estudante de Tecnologia, cursando o tecnólogo em Inteligência Artificial pela Cruzeiro do Sul Virtual.</span></div>
-
+          
          <p style="margin-top:10px">
 
 </p>
-
        <!-- === Bloco de botões (substituir o antigo por este) === -->
 <div class="row" style="margin-top:12px">
   <a class="btn" target="_blank" href="https://www.linkedin.com/in/ronaldo-matesco-239b381ab">LinkedIn</a>
