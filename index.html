@@ -364,13 +364,25 @@ err = _stderr.getvalue()
       // PYTHON
       {
         idx: 300,
-        id: "py-ano-bissexto",
-        title: "Python — Ano bissexto <a href='codes/python/ano_bissexto.py' target='_blank' rel='noopener'>ver .py</a>",
-        category: "python",
-        tags: ["condicionais","datas","básico"],
-        code: `# Digite um ano e veja se é bissexto.
-# Dica: digite 0 para usar o ano atual.
-# Lógica: (ano % 4 == 0 e ano % 100 != 0) ou (ano % 400 == 0)`
+id: "py-ano-bissexto",
+title: "Python — Ano bissexto <a href='codes/python/ano_bissexto.py' target='_blank' rel='noopener'>ver .py</a>",
+category: "python",
+tags: ["condicionais","datas","básico"],
+code: `# calculando se um ano é bissexto
+# dica: digite 0 para usar o ano atual
+from datetime import date
+
+ano = int(input("digite o ano (0 = atual): "))
+
+if ano == 0:
+    ano = date.today().year
+    print(ano)
+
+if (ano % 4 == 0 and ano % 100 != 0) or (ano % 400 == 0):
+    print(f"{ano} é BISSEXTO !")
+else:
+    print(f"{ano} NÃO é bissexto !")`
+
       },
 
       // N8N (exemplos)
