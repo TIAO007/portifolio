@@ -5,7 +5,6 @@
   <meta charset="utf-8" />
   <!-- Python no navegador (Pyodide) -->
 <script defer src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-
 <!-- Runner para todos os códigos Python nas páginas -->
 <script defer id="py-runner-init">
   window.__PY_RUNNER__ = (function(){
@@ -181,6 +180,32 @@ err = _stderr.getvalue()
     .switch:hover{border-color:var(--outline-hover)}
   </style>
 </head>
+  <style>
+/* ===== Runner Python (painel de execução) ===== */
+.py-panel{
+  border:1px solid var(--outline,#1A2236);
+  border-radius:14px;
+  padding:12px;
+  margin-top:10px;
+  background:rgba(0,0,0,.35);
+  box-shadow:0 10px 30px rgba(0,0,0,.35)
+}
+.py-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.py-stdin{
+  flex:1 1 260px;min-height:72px;
+  background:#0b0f13;border:1px solid #3a5d8a;color:#e8f6ff;
+  border-radius:12px;padding:10px 12px;outline:none;resize:vertical
+}
+.py-actions{display:flex;gap:8px;align-items:center}
+.py-panel .btn{cursor:pointer}
+.py-out{margin-top:8px}
+.py-out pre{
+  margin:0;background:#0b0f13;border:1px dashed #3a5d8a;color:#e8f6ff;
+  border-radius:12px;padding:10px 12px;white-space:pre-wrap
+}
+.py-stderr{border-color:#b54b4b;color:#ffdede}
+</style>
+
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
   <div id="veil"></div>
@@ -327,8 +352,6 @@ err = _stderr.getvalue()
 # 3) Email: envia resumo diário`
   }
 ];
-
-
     const cats = document.getElementById('cats');
     const list = document.getElementById('list');
     let activeCat = new URL(location.href).searchParams.get('cat');
