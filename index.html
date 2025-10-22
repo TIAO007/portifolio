@@ -513,5 +513,23 @@ err = _stderr.getvalue()
       requestAnimationFrame(step);
     })();
   </script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    // marca todo <pre> dentro de cards de Python
+    document.querySelectorAll('.python pre, .exercise-card.python pre, .card.python pre')
+      .forEach(pre => pre.setAttribute('data-lang','python'));
+
+    // fallback: se algum escapar, detecta por padrão de código
+    document.querySelectorAll('pre:not([data-lang])').forEach(pre=>{
+      const t = pre.innerText || '';
+      if (t.includes('input(') || t.includes('print(') || t.includes('def ') || t.includes('import ')) {
+        pre.setAttribute('data-lang','python');
+      }
+    });
+
+    // aciona o runner (Pyodide) pra anexar os painéis
+    if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
+  });
+</script>
 </body>
 </html>
