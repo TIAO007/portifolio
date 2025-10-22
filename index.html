@@ -192,17 +192,43 @@
     const CATEGORIES = [{ id:"python", label:"PYTHON" }, { id:"n8n", label:"N8N" }];
     const EX_COLORS = ["#7DD3FC","#93C5FD","#C4B5FD","#A5B4FC","#67E8F9","#86EFAC","#FDE68A","#F9A8D4"];
     const EXERCISES = [
-      { idx:5, id:"ex-strings",  title:"Strings — contagem de vogais", category:"python", tags:["básico","strings"],
-        code:`s = input("Texto: ").lower()\nprint(sum(c in "aeiou" for c in s))` },
-      { idx:4, id:"ex-maximo",   title:"Listas — máximo", category:"python", tags:["listas","max"],
-        code:`nums = [int(x) for x in input().split()]\nprint(max(nums))` },
-      { idx:3, id:"ex-fat",      title:"Fatorial (for)", category:"python", tags:["laços","for"],
-        code:`n = int(input("n: "))\nfat = 1\nfor i in range(2, n+1):\n    fat *= i\nprint(fat)` },
-      { idx:2, id:"n8n-http",    title:"n8n — HTTP Request → JSON parse", category:"n8n", tags:["workflow","http","json"],
-        code:`# 1) HTTP Request: GET https://api.coindesk.com/v1/bpi/currentprice.json\n# 2) Set: selecione campos (bpi.USD.rate)\n# 3) IF: condições -> rotas\n# 4) Telegram (Send Message) ou Google Sheets (Append Row)` },
-      { idx:1, id:"n8n-cron",    title:"n8n — Cron diário + Email", category:"n8n", tags:["cron","email"],
-        code:`# 1) Cron: Daily 08:00\n# 2) Code (JS): monta mensagem\n# 3) Email: envia resumo diário` }
-    ];
+      const EXERCISES = [
+  // PYTHON (apenas o que você quer manter)
+  {
+    idx: 300,  // maior número = aparece primeiro
+    id: "py-ano-bissexto",
+    title: "Python — Ano bissexto <a href='codes/python/ano_bissexto.py' target='_blank' rel='noopener'>ver .py</a>",
+    category: "python",
+    tags: ["condicionais","datas","básico"],
+    code: `# Digite um ano e veja se é bissexto.
+# Dica: digite 0 para usar o ano atual.
+# Lógica: (ano % 4 == 0 e ano % 100 != 0) ou (ano % 400 == 0)`
+  },
+
+  // N8N (mantidos)
+  {
+    idx: 2,
+    id: "n8n-http",
+    title: "n8n — HTTP Request → JSON parse",
+    category: "n8n",
+    tags: ["workflow","http","json"],
+    code: `# 1) HTTP Request: GET https://api.coindesk.com/v1/bpi/currentprice.json
+# 2) Set: selecione campos (bpi.USD.rate)
+# 3) IF: condições -> rotas
+# 4) Telegram (Send Message) ou Google Sheets (Append Row)`
+  },
+  {
+    idx: 1,
+    id: "n8n-cron",
+    title: "n8n — Cron diário + Email",
+    category: "n8n",
+    tags: ["cron","email"],
+    code: `# 1) Cron: Daily 08:00
+# 2) Code (JS): monta mensagem
+# 3) Email: envia resumo diário`
+  }
+];
+
 
     const cats = document.getElementById('cats');
     const list = document.getElementById('list');
