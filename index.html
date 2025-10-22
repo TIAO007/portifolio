@@ -3,44 +3,57 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RONALDO MATESCO — Portfólio</title>
+  <meta name="description" content="Portfólio minimalista e futurista com grafos ao fundo, conteúdo transparente e download de currículo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- ===== [PY-RUNNER] SCRIPTS NO HEAD ===== BEGIN -->
   <!-- Python no navegador (Pyodide) -->
-<script defer src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-<!-- Runner para todos os códigos Python nas páginas -->
-<script defer id="py-runner-init">
-  window.__PY_RUNNER__ = (function(){
-    let pyodidePromise = null;
-    async function getPyodide() {
-      if (!pyodidePromise) {
-        pyodidePromise = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
+  <script defer src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
+  <!-- Runner para todos os códigos Python nas páginas -->
+  <script defer id="py-runner-init">
+    window.__PY_RUNNER__ = (function(){
+      let pyodidePromise = null;
+      async function getPyodide() {
+        if (!pyodidePromise) {
+          pyodidePromise = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
+        }
+        return pyodidePromise;
       }
-      return pyodidePromise;
-    }
-    function makePanel(pre){
-      const wrap = document.createElement('div');
-      wrap.className = 'py-panel';
-      wrap.innerHTML = `
-        <div class="py-row">
-          <textarea class="py-stdin" placeholder="Valores para input() — um por linha"></textarea>
-          <div class="py-actions">
-            <button class="btn py-run">Executar</button>
-            <button class="btn py-clear">Limpar</button>
+
+      function makePanel(pre){
+        const wrap = document.createElement('div');
+        wrap.className = 'py-panel';
+        wrap.innerHTML = `
+          <div class="py-row">
+            <textarea class="py-stdin" placeholder="Valores para input() — um por linha"></textarea>
+            <div class="py-actions">
+              <button class="btn py-run">Executar</button>
+              <button class="btn py-clear">Limpar</button>
+            </div>
           </div>
-        </div>
-        <div class="py-out" aria-live="polite"></div>
-      `;
-      pre.insertAdjacentElement('afterend', wrap);
-      const btnRun   = wrap.querySelector('.py-run');
-      const btnClear = wrap.querySelector('.py-clear');
-      const stdinTA  = wrap.querySelector('.py-stdin');
-      const outDiv   = wrap.querySelector('.py-out');
-      btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; };
-      btnRun.onclick = async () => {
-        btnRun.disabled = true; outDiv.textContent = "Executando…";
-        try {
-          const py = await getPyodide();
-          const code = pre.innerText;
-          const inputs = stdinTA.value.replace(/\r\n/g, "\n");
-          const runner = `
+          <div class="py-out" aria-live="polite"></div>
+        `;
+        pre.insertAdjacentElement('afterend', wrap);
+
+        const btnRun   = wrap.querySelector('.py-run');
+        const btnClear = wrap.querySelector('.py-clear');
+        const stdinTA  = wrap.querySelector('.py-stdin');
+        const outDiv   = wrap.querySelector('.py-out');
+
+        btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; };
+
+        btnRun.onclick = async () => {
+          btnRun.disabled = true; outDiv.textContent = "Executando…";
+          try {
+            const py = await getPyodide();
+            const code = pre.innerText;
+            const inputs = stdinTA.value.replace(/\r\n/g, "\n");
+            const runner = `
 import sys, io, builtins
 _input_lines = """${inputs}""".splitlines()
 _input_idx = 0
@@ -61,43 +74,44 @@ finally:
     sys.stdout, sys.stderr = _sys_stdout, _sys_stderr
 out = _stdout.getvalue()
 err = _stderr.getvalue()
-          `;
-          await py.runPythonAsync(runner);
-          const out = py.globals.get('out');
-          const err = py.globals.get('err');
-          outDiv.innerHTML = "";
-          if (out && out.toString().trim()) {
-            outDiv.innerHTML += `<pre class="py-stdout">${escapeHtml(out.toString())}</pre>`;
+            `;
+            await py.runPythonAsync(runner);
+            const out = py.globals.get('out');
+            const err = py.globals.get('err');
+
+            function esc(s){return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));}
+
+            outDiv.innerHTML = "";
+            if (out && out.toString().trim()) {
+              outDiv.innerHTML += `<pre class="py-stdout">${esc(out.toString())}</pre>`;
+            }
+            if (err && err.toString().trim()) {
+              outDiv.innerHTML += `<pre class="py-stderr">${esc(err.toString())}</pre>`;
+            }
+            if (!outDiv.innerHTML) outDiv.textContent = "✔️ Concluído (sem saída).";
+          } catch(e){
+            const esc = s=>String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+            outDiv.innerHTML = `<pre class="py-stderr">${esc(e)}</pre>`;
+          } finally {
+            btnRun.disabled = false;
           }
-          if (err && err.toString().trim()) {
-            outDiv.innerHTML += `<pre class="py-stderr">${escapeHtml(err.toString())}</pre>`;
-          }
-          if (!outDiv.innerHTML) outDiv.textContent = "✔️ Concluído (sem saída).";
-        } catch(e){
-          outDiv.innerHTML = `<pre class="py-stderr">${escapeHtml(String(e))}</pre>`;
-        } finally {
-          btnRun.disabled = false;
-        }
-      };
-    }
-    function escapeHtml(s){
-      return s.replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
-    }
-    function autowire(){
-      const pres = document.querySelectorAll('pre[data-lang="python"], .exercise-card.python pre, .card.python pre, .py-code pre, pre[data-py]');
-      pres.forEach(pre => { if (!pre.__wired) { pre.__wired = true; makePanel(pre); } });
-    }
-    document.addEventListener('DOMContentLoaded', autowire);
-    window.addEventListener('load', autowire);
-    return { wireAll: autowire };
-  })();
-</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RONALDO MATESCO — Portfólio</title>
-  <meta name="description" content="Portfólio minimalista e futurista com grafos ao fundo, conteúdo transparente e download de currículo.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+        };
+      }
+
+      function autowire(){
+        // todo <pre> em cards de classe .python recebe painel
+        const pres = document.querySelectorAll('pre[data-lang="python"], .card.python pre, .py-code pre, pre[data-py]');
+        pres.forEach(pre => { if (!pre.__wired) { pre.__wired = true; makePanel(pre); } });
+      }
+
+      document.addEventListener('DOMContentLoaded', autowire);
+      window.addEventListener('load', autowire);
+      return { wireAll: autowire };
+    })();
+  </script>
+  <!-- ===== [PY-RUNNER] SCRIPTS NO HEAD ===== END -->
+
+  <!-- ===== [BASE STYLES] ===== -->
   <style>
     :root{
       --bg:#0B0E13; --text:#E8EEF6; --muted:#A9B3C8;
@@ -169,33 +183,63 @@ err = _stderr.getvalue()
     .controls{position:fixed; right:14px; top:12px; z-index:3; display:flex; gap:8px}
     .switch{border:1px solid var(--outline); background:var(--btn-bg); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer}
     .switch:hover{border-color:var(--outline-hover)}
+
+    /* ===== [PY-RUNNER] ESTILOS DO PAINEL ===== */
+    .py-panel{
+      border:1px solid var(--outline,#1A2236);
+      border-radius:14px;
+      padding:12px;
+      margin-top:10px;
+      background:rgba(0,0,0,.35);
+      box-shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    .py-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .py-stdin{
+      flex:1 1 260px;min-height:72px;
+      background:#0b0f13;border:1px solid #3a5d8a;color:#e8f6ff;
+      border-radius:12px;padding:10px 12px;outline:none;resize:vertical
+    }
+    .py-actions{display:flex;gap:8px;align-items:center}
+    .py-panel .btn{cursor:pointer}
+    .py-out{margin-top:8px}
+    .py-out pre{
+      margin:0;background:#0b0f13;border:1px dashed #3a5d8a;color:#e8f6ff;
+      border-radius:12px;padding:10px 12px;white-space:pre-wrap
+    }
+    .py-stderr{border-color:#b54b4b;color:#ffdede}
+
+    /* ===== [N8N] Galeria ===== */
+    .n8n-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+    }
+    .n8n-item{
+      margin:0;
+      border:1px solid #3a5d8a;
+      border-radius:14px;
+      background:rgba(0,0,0,.35);
+      overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    .n8n-item img{
+      width:100%;
+      height:180px;
+      object-fit:cover;
+      display:block;
+      transition:transform .25s ease;
+    }
+    .n8n-item:hover img{ transform:scale(1.02) }
+    .n8n-item figcaption{
+      padding:8px 10px;
+      font-size:.95rem;
+      opacity:.9;
+      border-top:1px dashed #3a5d8a;
+    }
   </style>
+  <!-- ===== [BASE STYLES] END ===== -->
 </head>
-  <style>
-/* ===== Runner Python (painel de execução) ===== */
-.py-panel{
-  border:1px solid var(--outline,#1A2236);
-  border-radius:14px;
-  padding:12px;
-  margin-top:10px;
-  background:rgba(0,0,0,.35);
-  box-shadow:0 10px 30px rgba(0,0,0,.35)
-}
-.py-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.py-stdin{
-  flex:1 1 260px;min-height:72px;
-  background:#0b0f13;border:1px solid #3a5d8a;color:#e8f6ff;
-  border-radius:12px;padding:10px 12px;outline:none;resize:vertical
-}
-.py-actions{display:flex;gap:8px;align-items:center}
-.py-panel .btn{cursor:pointer}
-.py-out{margin-top:8px}
-.py-out pre{
-  margin:0;background:#0b0f13;border:1px dashed #3a5d8a;color:#e8f6ff;
-  border-radius:12px;padding:10px 12px;white-space:pre-wrap
-}
-.py-stderr{border-color:#b54b4b;color:#ffdede}
-</style>
+
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
   <div id="veil"></div>
@@ -209,44 +253,36 @@ err = _stderr.getvalue()
           <h1>RONALDO MATESCO</h1>
           <div style="text-align:center"><span class="pill">Sou estudante de Tecnologia, cursando o tecnólogo em Inteligência Artificial pela Cruzeiro do Sul Virtual.</span></div>
           
-         <p style="margin-top:10px">
+          <p style="margin-top:10px"></p>
 
-</p>
-       <!-- === Bloco de botões (substituir o antigo por este) === -->
-<div class="row" style="margin-top:12px">
-  <a class="btn" target="_blank" href="https://www.linkedin.com/in/ronaldo-matesco-239b381ab">LinkedIn</a>
-  <a class="btn" href="mailto:ronaldobh137@gmail.com">Email</a>
+          <!-- === Bloco de botões === -->
+          <div class="row" style="margin-top:12px">
+            <a class="btn" target="_blank" href="https://www.linkedin.com/in/ronaldo-matesco-239b381ab">LinkedIn</a>
+            <a class="btn" href="mailto:ronaldobh137@gmail.com">Email</a>
 
-  <!-- WhatsApp (compatível mobile e desktop) -->
-  <a class="btn" id="btn-wa-portfolio" target="_blank" rel="noopener" href="#">
-    WhatsApp
-  </a>
-</div>
+            <!-- WhatsApp (compatível mobile e desktop) -->
+            <a class="btn" id="btn-wa-portfolio" target="_blank" rel="noopener" href="#">
+              WhatsApp
+            </a>
+          </div>
 
-<script>
-  // WhatsApp compatível (detecta mobile/desktop e abre a rota mais estável)
-  (function () {
-    const btn = document.getElementById('btn-wa-portfolio');
-    if (!btn) return;
-
-    const numero = '5531987871531'; // 55 + DDD + número (sem espaços/traços)
-    const mensagem = 'Olá, vi seu portfólio RONALDO MATESCO e gostaria de conversar.';
-
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
-
-      // Em alguns navegadores "wa.me" não abre dentro de webview; a rota "api.whatsapp.com" costuma ser mais confiável no desktop
-      const url = isMobile
-        ? `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`
-        : `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensagem)}`;
-
-      // abre em nova aba/janela
-      window.open(url, '_blank', 'noopener');
-    });
-  })();
-</script>
-
+          <script>
+            // WhatsApp compatível (detecta mobile/desktop e abre a rota mais estável)
+            (function () {
+              const btn = document.getElementById('btn-wa-portfolio');
+              if (!btn) return;
+              const numero = '5531987871531'; // 55 + DDD + número (sem espaços/traços)
+              const mensagem = 'Olá, vi seu portfólio RONALDO MATESCO e gostaria de conversar.';
+              btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+                const url = isMobile
+                  ? `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`
+                  : `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensagem)}`;
+                window.open(url, '_blank', 'noopener');
+              });
+            })();
+          </script>
 
           <!-- Currículo -->
           <div id="cvpanel" class="card" style="margin-top:12px; text-align:center">
@@ -262,26 +298,25 @@ err = _stderr.getvalue()
 
     <!-- Sobre mim -->
     <section class="card" style="margin-top:18px">
-    <!-- SOBRE MIM — texto corrido e justificado -->
-<h3>Sobre mim</h3>
-<p id="sobre-bio"
-   style="margin:10px 0 0 0; display:block; width:100%; max-width:100%;
-          text-align:justify; text-justify:inter-word;
-          line-height:1.55; hyphens:auto; -webkit-hyphens:auto;">
-  Estou começando minha trajetória na área.
-  Quero aprender no dia a dia com profissionais experientes, entendendo o processo e evoluindo com feedback.
-  Já estudo e pratico <strong>Python</strong>, <strong>n8n</strong> e <strong>SQL</strong> em exercícios e pequenos projetos,
-  sempre priorizando organização, anotações e código simples.
-  Minha base em <strong>Engenharia Civil</strong> me ajuda a compreender conceitos importantes para IA:
-  <strong>álgebra linear</strong> (vetores e matrizes), <strong>cálculo</strong> (variação/otimização) e
-  <strong>probabilidade/estatística</strong> (dados e medidas). Ainda não domino tudo, mas estou motivado para
-  transformar teoria em prática, passo a passo.
-  Tive experiências internacionais (Portugal, Espanha, Itália e Londres) que fortaleceram minha
-  <strong>comunicação</strong> e <strong>adaptabilidade</strong>. Busco um <strong>estágio</strong> para começar ajudando em
-  tarefas simples — como automatizações no <strong>n8n</strong>, scripts de apoio em <strong>Python</strong> e consultas
-  básicas em <strong>SQL</strong> — e, com orientação, assumir responsabilidades maiores à medida que aprendo.
-  Meu foco é contribuir, aprender rápido e crescer junto com o time.
-</p>
+      <h3>Sobre mim</h3>
+      <p id="sobre-bio"
+        style="margin:10px 0 0 0; display:block; width:100%; max-width:100%;
+              text-align:justify; text-justify:inter-word;
+              line-height:1.55; hyphens:auto; -webkit-hyphens:auto;">
+        Estou começando minha trajetória na área.
+        Quero aprender no dia a dia com profissionais experientes, entendendo o processo e evoluindo com feedback.
+        Já estudo e pratico <strong>Python</strong>, <strong>n8n</strong> e <strong>SQL</strong> em exercícios e pequenos projetos,
+        sempre priorizando organização, anotações e código simples.
+        Minha base em <strong>Engenharia Civil</strong> me ajuda a compreender conceitos importantes para IA:
+        <strong>álgebra linear</strong> (vetores e matrizes), <strong>cálculo</strong> (variação/otimização) e
+        <strong>probabilidade/estatística</strong> (dados e medidas). Ainda não domino tudo, mas estou motivado para
+        transformar teoria em prática, passo a passo.
+        Tive experiências internacionais (Portugal, Espanha, Itália e Londres) que fortaleceram minha
+        <strong>comunicação</strong> e <strong>adaptabilidade</strong>. Busco um <strong>estágio</strong> para começar ajudando em
+        tarefas simples — como automatizações no <strong>n8n</strong>, scripts de apoio em <strong>Python</strong> e consultas
+        básicas em <strong>SQL</strong> — e, com orientação, assumir responsabilidades maiores à medida que aprendo.
+        Meu foco é contribuir, aprender rápido e crescer junto com o time.
+      </p>
     </section>
 
     <!-- Filtros de categoria -->
@@ -289,6 +324,25 @@ err = _stderr.getvalue()
 
     <!-- Lista de exercícios -->
     <section id="list" class="grid" aria-live="polite"></section>
+
+    <!-- ===== [N8N] GALERIA DE FLUXOS (PRINTS) ===== BEGIN -->
+    <section id="n8n-prints" class="card" style="margin-top:18px">
+      <h2 style="margin:0 0 8px 0">n8n — Fluxos (prints)</h2>
+      <p class="muted" style="margin:0 0 12px 0">Alguns fluxos que construí no n8n. Clique para abrir em tamanho cheio.</p>
+
+      <div class="n8n-grid">
+        <!-- Item 1 — troque o src pelo nome do seu arquivo após enviar para assets/n8n/ -->
+        <figure class="n8n-item">
+          <a href="assets/n8n/fluxo-resumo-diario.jpg" target="_blank" rel="noopener">
+            <img src="assets/n8n/fluxo-resumo-diario.jpg" alt="n8n: Resumo diário por e-mail">
+          </a>
+          <figcaption>Resumo diário por e-mail (HTTP → Set → IF → Email)</figcaption>
+        </figure>
+
+        <!-- Duplicar este bloco <figure> para mais imagens -->
+      </div>
+    </section>
+    <!-- ===== [N8N] GALERIA DE FLUXOS (PRINTS) ===== END -->
 
     <footer class="footer">© <span id="year"></span> • RONALDO MATESCO</footer>
   </div>
@@ -305,42 +359,44 @@ err = _stderr.getvalue()
     // categorias + exercícios (ordem decrescente)
     const CATEGORIES = [{ id:"python", label:"PYTHON" }, { id:"n8n", label:"N8N" }];
     const EX_COLORS = ["#7DD3FC","#93C5FD","#C4B5FD","#A5B4FC","#67E8F9","#86EFAC","#FDE68A","#F9A8D4"];
+
     const EXERCISES = [
-  // PYTHON (apenas o que você quer manter)
-  {
-    idx: 300,  // maior número = aparece primeiro
-    id: "py-ano-bissexto",
-    title: "Python — Ano bissexto <a href='codes/python/ano_bissexto.py' target='_blank' rel='noopener'>ver .py</a>",
-    category: "python",
-    tags: ["condicionais","datas","básico"],
-    code: `# Digite um ano e veja se é bissexto.
+      // PYTHON
+      {
+        idx: 300,
+        id: "py-ano-bissexto",
+        title: "Python — Ano bissexto <a href='codes/python/ano_bissexto.py' target='_blank' rel='noopener'>ver .py</a>",
+        category: "python",
+        tags: ["condicionais","datas","básico"],
+        code: `# Digite um ano e veja se é bissexto.
 # Dica: digite 0 para usar o ano atual.
 # Lógica: (ano % 4 == 0 e ano % 100 != 0) ou (ano % 400 == 0)`
-  },
+      },
 
-  // N8N (mantidos)
-  {
-    idx: 2,
-    id: "n8n-http",
-    title: "n8n — HTTP Request → JSON parse",
-    category: "n8n",
-    tags: ["workflow","http","json"],
-    code: `# 1) HTTP Request: GET https://api.coindesk.com/v1/bpi/currentprice.json
+      // N8N (exemplos)
+      {
+        idx: 2,
+        id: "n8n-http",
+        title: "n8n — HTTP Request → JSON parse",
+        category: "n8n",
+        tags: ["workflow","http","json"],
+        code: `# 1) HTTP Request: GET https://api.coindesk.com/v1/bpi/currentprice.json
 # 2) Set: selecione campos (bpi.USD.rate)
 # 3) IF: condições -> rotas
 # 4) Telegram (Send Message) ou Google Sheets (Append Row)`
-  },
-  {
-    idx: 1,
-    id: "n8n-cron",
-    title: "n8n — Cron diário + Email",
-    category: "n8n",
-    tags: ["cron","email"],
-    code: `# 1) Cron: Daily 08:00
+      },
+      {
+        idx: 1,
+        id: "n8n-cron",
+        title: "n8n — Cron diário + Email",
+        category: "n8n",
+        tags: ["cron","email"],
+        code: `# 1) Cron: Daily 08:00
 # 2) Code (JS): monta mensagem
 # 3) Email: envia resumo diário`
-  }
-];
+      }
+    ];
+
     const cats = document.getElementById('cats');
     const list = document.getElementById('list');
     let activeCat = new URL(location.href).searchParams.get('cat');
@@ -381,7 +437,8 @@ err = _stderr.getvalue()
 
     function card(e, idx){
       const el = document.createElement('div');
-      el.className = 'card'; el.id = e.id;
+      // *** aqui damos classe pela categoria para o runner encontrar os <pre> de Python ***
+      el.className = 'card ' + (e.category || '');
       const color = EX_COLORS[idx % EX_COLORS.length];
       el.style.borderLeft = `4px solid ${color}`;
       el.innerHTML = `
@@ -390,7 +447,7 @@ err = _stderr.getvalue()
         <div>${(e.tags||[]).map(t => `<span style="display:inline-block;border:1px solid ${color};color:${color};padding:4px 8px;border-radius:999px;font-size:12px;margin-right:6px;margin-top:6px;background:transparent">${t}</span>`).join('')}</div>
         <details>
           <summary>ver conteúdo <button class="btn" style="float:right" onclick="event.stopPropagation();copyCode(String.raw\`${e.code.replace(/`/g,'\\u0060')}\`)" title="Copiar">copiar</button></summary>
-          <pre><code>${e.code.replace(/</g,'&lt;')}</code></pre>
+          <pre ${e.category==='python' ? 'data-lang="python"' : ''}><code>${e.code.replace(/</g,'&lt;')}</code></pre>
         </details>`;
       return el;
     }
@@ -410,10 +467,14 @@ err = _stderr.getvalue()
       list.innerHTML = '';
       EXERCISES.slice().sort((a,b)=>b.idx-a.idx).filter(matches).forEach((e,i)=> list.appendChild(card(e,i)));
       if(list.children.length===0){
-        const empty=document.createElement('div'); empty.className='card muted'; empty.textContent='Nada por aqui ainda.';
+        const empty=document.createElement('div'); empty.className = 'card muted'; empty.textContent='Nada por aqui ainda.';
         list.appendChild(empty);
       }
+
+      // depois de renderizar os cards, peça ao runner para anexar os painéis de Python
+      if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
     }
+
     buildChips(); render();
 
     // Download robusto do CV
@@ -502,23 +563,27 @@ err = _stderr.getvalue()
       requestAnimationFrame(step);
     })();
   </script>
+
+  <!-- ===== [PY-RUNNER] AUTO-MARCAÇÃO E LIGAÇÃO ===== BEGIN -->
   <script>
-  document.addEventListener('DOMContentLoaded', function(){
-    // marca todo <pre> dentro de cards de Python
-    document.querySelectorAll('.python pre, .exercise-card.python pre, .card.python pre')
-      .forEach(pre => pre.setAttribute('data-lang','python'));
+    document.addEventListener('DOMContentLoaded', function(){
+      // marca todo <pre> dentro de cards de PYTHON
+      document.querySelectorAll('.card.python pre')
+        .forEach(pre => pre.setAttribute('data-lang','python'));
 
-    // fallback: se algum escapar, detecta por padrão de código
-    document.querySelectorAll('pre:not([data-lang])').forEach(pre=>{
-      const t = pre.innerText || '';
-      if (t.includes('input(') || t.includes('print(') || t.includes('def ') || t.includes('import ')) {
-        pre.setAttribute('data-lang','python');
-      }
+      // fallback: se algum escapar, detecta por padrão de código
+      document.querySelectorAll('pre:not([data-lang])').forEach(pre=>{
+        const t = pre.innerText || '';
+        if (t.includes('input(') || t.includes('print(') || t.includes('def ') || t.includes('import ')) {
+          pre.setAttribute('data-lang','python');
+        }
+      });
+
+      // aciona o runner (Pyodide) pra anexar os painéis
+      if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
     });
+  </script>
+  <!-- ===== [PY-RUNNER] AUTO-MARCAÇÃO E LIGAÇÃO ===== END -->
 
-    // aciona o runner (Pyodide) pra anexar os painéis
-    if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
-  });
-</script>
 </body>
 </html>
