@@ -10,11 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- ===== [PY-RUNNER] SCRIPTS NO HEAD ===== BEGIN -->
-  <!-- Python no navegador (Pyodide) -->
+  <!-- Pyodide (Python no navegador) -->
   <script defer src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
 
-  <!-- Runner: cria painel de execução abaixo de cada <pre> Python -->
+  <!-- Runner: cria painel de execução abaixo de cada <pre> Python quando aberto -->
   <script defer id="py-runner-init">
     window.__PY_RUNNER__ = (function(){
       let pyodidePromise = null;
@@ -24,7 +23,6 @@
         }
         return pyodidePromise;
       }
-
       function makePanel(pre){
         const wrap = document.createElement('div');
         wrap.className = 'py-panel';
@@ -101,20 +99,16 @@ err = _stderr.getvalue()
           }
         };
       }
-
       function autowire(){
-        const pres = document.querySelectorAll('pre[data-lang="python"], .card.python pre, .py-code pre, pre[data-py]');
+        const pres = document.querySelectorAll('pre[data-lang="python"]');
         pres.forEach(pre => { if (!pre.__wired) { pre.__wired = true; makePanel(pre); } });
       }
-
       document.addEventListener('DOMContentLoaded', autowire);
       window.addEventListener('load', autowire);
       return { wireAll: autowire };
     })();
   </script>
-  <!-- ===== [PY-RUNNER] SCRIPTS NO HEAD ===== END -->
 
-  <!-- ===== [BASE STYLES] ===== -->
   <style>
     :root{
       --bg:#0B0E13; --text:#E8EEF6; --muted:#A9B3C8;
@@ -153,7 +147,7 @@ err = _stderr.getvalue()
     .hero{margin-top:6px}
     .welcome{font-size:24px; margin:0 0 6px; color:#E6F0FF; text-align:center}
     h1{font-size:30px; margin:0 0 10px; font-weight:700; letter-spacing:.6px; text-align:center}
-    .pill{display:inline-block; border:1px solid var(--outline); border-radius:999px; padding:4px 10px; color:var(--muted); background:transparent}
+    .pill{display:inline-block; border:1px solid var(--outline); border-radius:999px; padding:4px 10px; color:#E6F0FF; background:transparent}
 
     .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; justify-content:center}
     .btn{background:var(--btn-bg); padding:8px 12px; border-radius:12px; color:var(--text); cursor:pointer}
@@ -161,8 +155,13 @@ err = _stderr.getvalue()
 
     .card{background:transparent; border-radius:14px; padding:16px; box-shadow:var(--shadow)}
     .muted{color:var(--muted)}
-    .bio{white-space:pre-line; background:transparent; border:1px solid var(--outline);
-         border-radius:12px; padding:12px 14px; text-align:left; line-height:1.8; color:var(--text)}
+
+    /* SOBRE MIM — texto corrido, branco forte */
+    #sobre-bio{
+      color:#fff; /* branco forte */
+      text-align:justify; text-justify:inter-word;
+      line-height:1.6; margin:10px 0 0 0;
+    }
 
     .grid{display:grid; gap:16px; margin-top:18px}
     @media(min-width:880px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
@@ -179,7 +178,7 @@ err = _stderr.getvalue()
     .switch{border:1px solid var(--outline); background:var(--btn-bg); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer}
     .switch:hover{border-color:var(--outline-hover)}
 
-    /* ===== [PY-RUNNER] ESTILOS DO PAINEL ===== */
+    /* Painel do runner */
     .py-panel{
       border:1px solid var(--outline,#1A2236);
       border-radius:14px;
@@ -203,7 +202,6 @@ err = _stderr.getvalue()
     }
     .py-stderr{border-color:#b54b4b;color:#ffdede}
   </style>
-  <!-- ===== [BASE STYLES] END ===== -->
 </head>
 
 <body>
@@ -229,11 +227,10 @@ err = _stderr.getvalue()
           </div>
 
           <script>
-            // WhatsApp compatível (detecta mobile/desktop e abre a rota mais estável)
             (function () {
               const btn = document.getElementById('btn-wa-portfolio');
               if (!btn) return;
-              const numero = '5531987871531'; // 55 + DDD + número
+              const numero = '5531987871531';
               const mensagem = 'Olá, vi seu portfólio RONALDO MATESCO e gostaria de conversar.';
               btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -261,16 +258,20 @@ err = _stderr.getvalue()
     <!-- Sobre mim -->
     <section class="card" style="margin-top:18px">
       <h3>Sobre mim</h3>
-      <p id="sobre-bio"
-        style="margin:10px 0 0 0; display:block; width:100%; max-width:100%;
-              text-align:justify; text-justify:inter-word;
-              line-height:1.55; hyphens:auto; -webkit-hyphens:auto;">
-        Estou começando minha trajetória na área e focado em aprender Python com prática diária:
-        exercícios, pequenos projetos e organização do código. Minha base em Engenharia Civil
-        ajuda com raciocínio lógico, álgebra linear, cálculo e estatística — fundamentos úteis
-        para Inteligência Artificial. Busco um estágio para contribuir em tarefas simples,
-        evoluir com feedback do time e, passo a passo, assumir mais responsabilidades.
+      <p id="sobre-bio">
+        Sou estudante de Inteligência Artificial com foco em <strong>Python</strong>. Estou construindo
+        minha base com prática diária: exercícios, pequenos projetos e boas anotações para
+        evoluir de forma consistente. Minha formação em <strong>Engenharia Civil</strong> reforça o
+        raciocínio lógico e a matemática (álgebra linear, cálculo e estatística) que sustentam
+        a IA. Busco uma oportunidade de <strong>estágio</strong> para aprender com profissionais experientes,
+        contribuir em tarefas reais e crescer com feedback.
       </p>
+    </section>
+
+    <!-- Nova seção: título da lista -->
+    <section class="card" style="margin-top:18px">
+      <h3>Exercícios de Python</h3>
+      <p class="muted" style="margin:6px 0 0 0">Abra um exercício para ver o código e executar no navegador.</p>
     </section>
 
     <!-- Lista de exercícios (apenas Python) -->
@@ -280,15 +281,13 @@ err = _stderr.getvalue()
   </div>
 
   <script>
-    // ano rodapé
+    // ano rodapé e Modo leitura
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // modo leitura (tecla R)
     const veil = document.getElementById('veil');
     document.getElementById('toggleVeil').addEventListener('click', ()=> veil.classList.toggle('on'));
     window.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='r') veil.classList.toggle('on'); });
 
-    // paleta para detalhes visuais dos cards
+    // paleta para detalhe visual
     const EX_COLORS = ["#7DD3FC","#93C5FD","#C4B5FD","#A5B4FC","#67E8F9","#86EFAC","#FDE68A","#F9A8D4"];
 
     // ===== Exercícios (SOMENTE PYTHON) =====
@@ -313,41 +312,43 @@ if (ano % 4 == 0 and ano % 100 != 0) or (ano % 400 == 0):
 else:
     print(f"{ano} NÃO é bissexto !")`
       }
-      // 👉 Para adicionar novos exercícios:
+      // Para adicionar novos exercícios:
       // copie o objeto acima, troque id/title/idx e o bloco code (entre crases).
     ];
 
     const list = document.getElementById('list');
 
+    // Cards colapsáveis: ver código ⇄ fechar código (SEM botão "Executar código" externo)
     function card(e, idx){
       const el = document.createElement('div');
       el.className = 'card ' + (e.category || '');
       const color = EX_COLORS[idx % EX_COLORS.length];
-
-      // Título limpo: remove "Python — " do começo para mostrar só o nome do exercício
       const titleText = (e.title || '').replace(/^Python\s+—\s+/i, '').trim();
 
       el.innerHTML = `
-        <h3 style="margin-bottom:6px;border-left:4px solid ${color};padding-left:8px">${titleText}</h3>
-        <pre data-lang="python"><code>${(e.code||'').replace(/</g,'&lt;')}</code></pre>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn run-now">Executar código</button>
+        <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <h3 style="margin:0;border-left:4px solid ${color};padding-left:8px">${titleText}</h3>
+          <button class="btn toggle-code" data-open="0">ver código</button>
+        </div>
+        <div class="code-wrap" style="display:none;margin-top:8px">
+          <pre data-lang="python"><code>${(e.code||'').replace(/</g,'&lt;')}</code></pre>
         </div>
       `;
 
-      // botão "Executar código"
-      el.querySelector('.run-now').addEventListener('click', function(){
-        const pre = el.querySelector('pre');
-        if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
-        const tryRun = () => {
-          const panel = pre && pre.nextElementSibling;
-          const runBtn = panel && panel.querySelector('.py-run');
-          if (runBtn) { runBtn.click(); return true; }
-          return false;
-        };
-        if (!tryRun()) {
-          this.textContent = 'Carregando…';
-          setTimeout(()=>{ if (tryRun()) this.textContent = 'Executar código'; }, 600);
+      const btn  = el.querySelector('.toggle-code');
+      const wrap = el.querySelector('.code-wrap');
+
+      btn.addEventListener('click', ()=>{
+        const open = btn.getAttribute('data-open') === '1';
+        if (open){
+          wrap.style.display = 'none';
+          btn.textContent = 'ver código';
+          btn.setAttribute('data-open','0');
+        } else {
+          wrap.style.display = '';
+          if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
+          btn.textContent = 'fechar código';
+          btn.setAttribute('data-open','1');
         }
       });
 
@@ -361,7 +362,6 @@ else:
         const empty=document.createElement('div'); empty.className = 'card muted'; empty.textContent='Nada por aqui ainda.';
         list.appendChild(empty);
       }
-      if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
     }
     render();
 
@@ -452,13 +452,14 @@ else:
     })();
   </script>
 
-  <!-- marca todos os <pre> como Python (garantia extra) -->
+  <!-- garante que <pre> sejam tratados como python quando abrirem -->
   <script>
     document.addEventListener('DOMContentLoaded', function(){
-      document.querySelectorAll('.card pre').forEach(pre => {
-        pre.setAttribute('data-lang','python');
+      document.body.addEventListener('click', function(ev){
+        if (ev.target && ev.target.closest('.toggle-code')) {
+          // quando abrir, o card() já chama wireAll(); aqui não precisamos fazer nada
+        }
       });
-      if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
     });
   </script>
 </body>
