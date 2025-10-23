@@ -375,5 +375,84 @@ else:
       });
     });
   </script>
+    <!-- (outros <script> seus aqui) -->
+
+  <!-- Fundo animado de grafos -->
+  <script>
+    // Fundo animado de grafos (simétricos, multicamadas)
+    (function graphBackground(){
+      const c = document.getElementById('bg');
+      if(!c) return;
+      const ctx = c.getContext('2d');
+      let w,h,dpr; let layers=[]; let mouse={x:null,y:null};
+      const LAYERS=[
+        {count:90,speed:.34,link:150,hueOffset:0,dir:+1},
+        {count:90,speed:.28,link:170,hueOffset:60,dir:-1},
+        {count:90,speed:.24,link:190,hueOffset:140,dir:+1}
+      ];
+      let hue=200; const HUE_SPEED=.03;
+
+      function resize(){
+        dpr=window.devicePixelRatio||1; w=innerWidth; h=innerHeight;
+        c.width=Math.floor(w*dpr); c.height=Math.floor(h*dpr);
+        c.style.width='100%'; c.style.height='100%';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      window.addEventListener('resize',resize); resize();
+
+      function rnd(a,b){return Math.random()*(b-a)+a;}
+      function spawnSym(count,dir){
+        const nodes=[]; const pairs=Math.floor(count/2);
+        for(let i=0;i<pairs;i++){
+          const xL=rnd(0,w*.32), y=rnd(0,h), xR=w-xL;
+          const base=.06;
+          const vxL=rnd(-.06,.06)+base+(dir*.02);
+          const vxR=rnd(-.06,.06)-base+(dir*.02);
+          const vy=rnd(-.1,.1);
+          nodes.push({x:xL,y, vx:vxL,vy});
+          nodes.push({x:xR,y:y+rnd(-6,6), vx:vxR, vy:vy+rnd(-.02,.02)});
+        }
+        if(count%2===1) nodes.push({x:rnd(w*.45,w*.55), y:rnd(0,h), vx:rnd(-.05,.05)+(dir*.01), vy:rnd(-.08,.08)});
+        return nodes;
+      }
+      function init(){ layers=LAYERS.map(L=>({...L, nodes:spawnSym(L.count,L.dir)})); }
+      init();
+
+      c.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+      c.addEventListener('mouseleave',()=>{mouse.x=mouse.y=null;});
+
+      function step(){
+        ctx.clearRect(0,0,w,h); hue=(hue+HUE_SPEED)%360;
+        for(const L of layers){
+          const nodes=L.nodes, link=L.link, speed=L.speed, hueOffset=L.hueOffset;
+          for(const n of nodes){
+            if(mouse.x!==null){
+              const dx=mouse.x-n.x, dy=mouse.y-n.y; const dist=Math.hypot(dx,dy)||1;
+              if(dist<240){ n.vx+=(dx/dist)*.0016; n.vy+=(dy/dist)*.0016; }
+            }
+            n.x+=n.vx*(1+speed); n.y+=n.vy*(1+speed);
+            if(n.x<0||n.x>w) n.vx*=-1; if(n.y<0||n.y>h) n.vy*=-1;
+          }
+          ctx.lineWidth=1;
+          for(let i=0;i<nodes.length;i++) for(let j=i+1;j<i+14 && j<nodes.length;j++){
+            const a=nodes[i],b=nodes[j]; const d=Math.hypot(a.x-b.x,a.y-b.y);
+            if(d<link){
+              const alpha=1-(d/link); const hh=(hue+hueOffset)%360;
+              ctx.strokeStyle=`hsla(${hh},85%,70%,${(alpha*.24).toFixed(3)})`;
+              ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+            }
+          }
+          ctx.fillStyle=`hsla(${(hue+hueOffset+40)%360},90%,80%,.40)`;
+          for(const n of nodes){ ctx.beginPath(); ctx.arc(n.x,n.y,2,0,Math.PI*2); ctx.fill(); }
+        }
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })();
+  </script>
+
+</body>
+</html>
+
 </body>
 </html>
