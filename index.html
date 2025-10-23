@@ -313,12 +313,13 @@ else:
       }
       // Para adicionar novos exercícios:
       // copie o objeto acima, troque id/title/idx e o bloco code (entre crases).
-      { idx: 301,
+      { 
+      idx: 301,
         id: "py-nascimento",
         title: "Python — Programa que lê o ano de nascimento de 'N' pessoas e informa quantas já são maiores de idade e quantas ainda não.",
         category: "python",
         code: `# quantas pessoas sao maiores de idade
-        from datetime import date
+from datetime import date
 ano_atual = date.today().year
 
 qtd = int(input('Quantas pessoas? '))
