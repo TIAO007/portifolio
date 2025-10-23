@@ -5,150 +5,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Portfólio Python — RONALDO MATESCO</title>
-  <meta name="description" content="Portfólio de exercícios em Python com execução no navegador (Pyodide). Layout minimalista, fundo com grafos e currículo disponível.">
+  <meta name="description" content="Portfólio de exercícios em Python com destaque de sintaxe. Layout minimalista, fundo com grafos e currículo disponível.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Arsenal:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- Pyodide (Python no navegador) -->
-  <script defer src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-
-  <!-- Runner: cria painel de execução abaixo de cada <pre> Python quando aberto -->
-  <script defer id="py-runner-init">
-    window.__PY_RUNNER__ = (function(){
-      let pyodidePromise = null;
-      async function getPyodide() {
-        if (!pyodidePromise) {
-          pyodidePromise = loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
-        }
-        return pyodidePromise;
-      }
-      function makePanel(pre){
-        const wrap = document.createElement('div');
-        wrap.className = 'py-panel';
-        wrap.innerHTML = `
-          <div class="py-row">
-            <textarea class="py-stdin" placeholder="Valores para input() — um por linha"></textarea>
-            <div class="py-actions">
-              <button class="btn py-run">Executar</button>
-              <button class="btn py-clear">Limpar</button>
-            </div>
-          </div>
-          <div class="py-out" aria-live="polite"></div>
-        `;
-        pre.insertAdjacentElement('afterend', wrap);
-
-        const btnRun   = wrap.querySelector('.py-run');
-        const btnClear = wrap.querySelector('.py-clear');
-        const stdinTA  = wrap.querySelector('.py-stdin');
-        const outDiv   = wrap.querySelector('.py-out');
-
-        // --- validação automática: conta quantos input() o código pede ---
-        const codeForCount = pre.innerText || "";
-        const requiredInputs = (codeForCount.match(/(^|[^A-Za-z_])input\s*\(/g) || []).length;
-
-        function updateGate(){
-          const provided = stdinTA.value.replace(/\r\n/g,"\n")
-            .split("\n").filter(l => l.trim() !== "").length;
-          if (requiredInputs > 0 && provided < requiredInputs){
-            btnRun.disabled = true;
-            btnRun.title = `Faltam ${requiredInputs - provided} linha(s) para os input()`;
-          } else {
-            btnRun.disabled = false;
-            btnRun.title = "";
-          }
-        }
-        stdinTA.addEventListener('input', updateGate);
-        updateGate();
-
-        // dica automática
-        if (requiredInputs > 0) {
-          const hintEl = document.createElement('div');
-          hintEl.style.fontSize = '12px';
-          hintEl.style.opacity = '0.8';
-          hintEl.style.marginTop = '6px';
-          hintEl.textContent = `Este exercício pede ${requiredInputs} entrada(s). Preencha acima, uma por linha.`;
-          wrap.appendChild(hintEl);
-        }
-
-        btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; updateGate(); };
-
-        btnRun.onclick = async () => {
-          btnRun.disabled = true; outDiv.textContent = "Executando…";
-          try {
-            const py = await getPyodide();
-            // blindagem: se o bloco tiver só comentários, não quebra o try/finally
-            const codeRaw = pre.innerText;
-            const hasStmt = codeRaw.split('\n').some(l => l.trim() && !l.trim().startsWith('#'));
-            const code = hasStmt ? codeRaw : 'pass';
-
-            const inputs = stdinTA.value.replace(/\r\n/g, "\n");
-            const runner = `
-import sys, io, builtins
-from js import prompt as _js_prompt
-
-_input_lines = """${inputs}""".splitlines()
-_input_idx = 0
-_prompt_fallbacks = 50  # limite de segurança
-
-def input(prompt=None):
-    global _input_idx, _input_lines, _prompt_fallbacks
-    # 1) usa a próxima linha do painel, se houver
-    if _input_idx < len(_input_lines):
-        val = _input_lines[_input_idx]
-        _input_idx += 1
-        return val
-    # 2) senão, pergunta no navegador com limite
-    if _prompt_fallbacks <= 0:
-        raise EOFError("Limite de prompts atingido. Preencha o painel de entrada.")
-    _prompt_fallbacks -= 1
-    r = _js_prompt(prompt or "")
-    if r is None:  # usuário cancelou
-        raise EOFError("Execução cancelada pelo usuário.")
-    return r
-
-_stdout = io.StringIO()
-_stderr = io.StringIO()
-_sys_stdout, _sys_stderr = sys.stdout, sys.stderr
-sys.stdout, sys.stderr = _stdout, _stderr
-try:
-${code.split('\n').map(l => '    ' + l).join('\n')}
-finally:
-    sys.stdout, sys.stderr = _sys_stdout, _sys_stderr
-out = _stdout.getvalue()
-err = _stderr.getvalue()
-            `;
-            await py.runPythonAsync(runner);
-            const out = py.globals.get('out');
-            const err = py.globals.get('err');
-
-            function esc(s){return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));}
-
-            outDiv.innerHTML = "";
-            if (out && out.toString().trim()) {
-              outDiv.innerHTML += `<pre class="py-stdout">${esc(out.toString())}</pre>`;
-            }
-            if (err && err.toString().trim()) {
-              outDiv.innerHTML += `<pre class="py-stderr">${esc(err.toString())}</pre>`;
-            }
-            if (!outDiv.innerHTML) outDiv.textContent = "✔️ Concluído (sem saída).";
-          } catch(e){
-            const esc = s=>String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
-            outDiv.innerHTML = `<pre class="py-stderr">${esc(e)}</pre>`;
-          } finally {
-            btnRun.disabled = false;
-          }
-        };
-      }
-      function autowire(){
-        const pres = document.querySelectorAll('pre[data-lang="python"]');
-        pres.forEach(pre => { if (!pre.__wired) { pre.__wired = true; makePanel(pre); } });
-      }
-      document.addEventListener('DOMContentLoaded', autowire);
-      window.addEventListener('load', autowire);
-      return { wireAll: autowire };
-    })();
-  </script>
+  <!-- Highlight.js (apenas exibição/estático) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 
   <style>
     :root{
@@ -210,30 +75,6 @@ err = _stderr.getvalue()
     }
 
     .footer{margin-top:26px; padding-top:16px; border-top:1px solid var(--outline); color:var(--muted); font-size:13px}
-
-    /* Painel do runner */
-    .py-panel{
-      border:1px solid var(--outline,#1A2236);
-      border-radius:14px;
-      padding:12px;
-      margin-top:10px;
-      background:rgba(0,0,0,.35);
-      box-shadow:0 10px 30px rgba(0,0,0,.35)
-    }
-    .py-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-    .py-stdin{
-      flex:1 1 260px;min-height:72px;
-      background:#0b0f13;border:1px solid #3a5d8a;color:#e8f6ff;
-      border-radius:12px;padding:10px 12px;outline:none;resize:vertical
-    }
-    .py-actions{display:flex;gap:8px;align-items:center}
-    .py-panel .btn{cursor:pointer}
-    .py-out{margin-top:8px}
-    .py-out pre{
-      margin:0;background:#0b0f13;border:1px dashed #3a5d8a;color:#e8f6ff;
-      border-radius:12px;padding:10px 12px;white-space:pre-wrap
-    }
-    .py-stderr{border-color:#b54b4b;color:#ffdede}
 
     /* Título central "Exercícios de Python" com contorno estilo LinkedIn */
     .section-title{
@@ -330,7 +171,8 @@ err = _stderr.getvalue()
     // paleta para detalhe visual
     const EX_COLORS = ["#7DD3FC","#93C5FD","#C4B5FD","#A5B4FC","#67E8F9","#86EFAC","#FDE68A","#F9A8D4"];
 
-    // ===== Exercícios (SOMENTE PYTHON) =====
+    // ===== Exercícios (ESTÁTICOS) =====
+    // Adicione novos exercícios colando objetos aqui. Nada mais é necessário.
     const EXERCISES = [
       {
         idx: 300,
@@ -382,38 +224,65 @@ print('____________________________________________')`
 
     const list = document.getElementById('list');
 
-    // Cards colapsáveis: ver código ⇄ fechar código
+    // Card ESTÁTICO com "ver código / fechar código" + botão Copiar
     function card(e, idx){
       const el = document.createElement('div');
       el.className = 'card ' + (e.category || '');
       const color = EX_COLORS[idx % EX_COLORS.length];
       const titleText = (e.title || '').replace(/^Python\s+—\s+/i, '').trim();
-      const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#39;'}[m]));
 
       el.innerHTML = `
         <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <h3 style="margin:0;border-left:4px solid ${color};padding-left:8px">${titleText}</h3>
-          <button class="btn toggle-code" data-open="0">ver código</button>
+          <div class="row" style="gap:8px">
+            <button class="btn toggle-code" data-open="0">ver código</button>
+            <button class="btn copy-code" title="Copiar código">Copiar</button>
+          </div>
         </div>
         <div class="code-wrap" style="display:none;margin-top:8px">
-          <pre data-lang="python"><code>${esc(e.code)}</code></pre>
+          <pre><code class="language-python"></code></pre>
         </div>
       `;
 
-      const btn  = el.querySelector('.toggle-code');
-      const wrap = el.querySelector('.code-wrap');
+      const btnToggle = el.querySelector('.toggle-code');
+      const btnCopy   = el.querySelector('.copy-code');
+      const wrap      = el.querySelector('.code-wrap');
+      const codeEl    = el.querySelector('pre code');
 
-      btn.addEventListener('click', ()=>{
-        const open = btn.getAttribute('data-open') === '1';
+      // injeta o código como texto (sem HTML) e só faz highlight quando abrir
+      let highlighted = false;
+      function ensureCode(){
+        if (!highlighted){
+          codeEl.textContent = e.code || '';
+          if (window.hljs && codeEl) hljs.highlightElement(codeEl);
+          highlighted = true;
+        }
+      }
+
+      btnToggle.addEventListener('click', ()=>{
+        const open = btnToggle.getAttribute('data-open') === '1';
         if (open){
           wrap.style.display = 'none';
-          btn.textContent = 'ver código';
-          btn.setAttribute('data-open','0');
+          btnToggle.textContent = 'ver código';
+          btnToggle.setAttribute('data-open','0');
         } else {
+          ensureCode();
           wrap.style.display = '';
-          if (window.__PY_RUNNER__) window.__PY_RUNNER__.wireAll();
-          btn.textContent = 'fechar código';
-          btn.setAttribute('data-open','1');
+          btnToggle.textContent = 'fechar código';
+          btnToggle.setAttribute('data-open','1');
+        }
+      });
+
+      btnCopy.addEventListener('click', async ()=>{
+        // garante que temos o texto carregado
+        ensureCode();
+        try{
+          await navigator.clipboard.writeText(codeEl.textContent || '');
+          const old = btnCopy.textContent;
+          btnCopy.textContent = 'Copiado!';
+          setTimeout(()=> btnCopy.textContent = old, 1200);
+        }catch{
+          alert('Não foi possível copiar.');
         }
       });
 
@@ -430,18 +299,6 @@ print('____________________________________________')`
     }
     render();
   </script>
-
-  <!-- garante que <pre> sejam tratados como python quando abrirem -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      document.body.addEventListener('click', function(ev){
-        if (ev.target && ev.target.closest('.toggle-code')) {
-          // quando abrir, o card() já chama wireAll(); aqui não precisamos fazer nada
-        }
-      });
-    });
-  </script>
-  <!-- (outros <script> seus aqui) -->
 
   <!-- Fundo animado de grafos -->
   <script>
