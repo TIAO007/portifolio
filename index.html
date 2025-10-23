@@ -313,6 +313,34 @@ else:
       }
       // Para adicionar novos exercícios:
       // copie o objeto acima, troque id/title/idx e o bloco code (entre crases).
+      { idx: 301,
+        id: "py-nascimento",
+        title: "Python — Programa que lê o ano de nascimento de 'N' pessoas e informa quantas já são maiores de idade e quantas ainda não.",
+        category: "python",
+        code: `# quantas pessoas sao maiores de idade
+        from datetime import date
+ano_atual = date.today().year
+
+qtd = int(input('Quantas pessoas? '))
+maiores = menores = iguais = 0
+
+for i in range(1, qtd + 1):
+    nascimento = int(input(f'Ano de nascimento {i}: '))
+    idade = ano_atual - nascimento
+    print(idade)
+    if idade > 18:
+        maiores += 1
+    elif idade < 18:
+        menores += 1
+    else:
+        iguais += 1
+
+print('____________________________________________')
+print(f'MAIORES DE 18 ANOS: {maiores}')
+print(f'MENORES DE 18 ANOS: {menores}')
+print(f'IGUAIS A 18 ANOS: {iguais}')
+print('____________________________________________')
+}
     ];
 
     const list = document.getElementById('list');
