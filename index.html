@@ -57,15 +57,22 @@
             const inputs = stdinTA.value.replace(/\r\n/g, "\n");
             const runner = `
 import sys, io, builtins
+from js import prompt as _js_prompt
+
 _input_lines = """${inputs}""".splitlines()
 _input_idx = 0
+
 def input(prompt=None):
     global _input_idx, _input_lines
-    if _input_idx >= len(_input_lines):
-        raise EOFError("Sem linhas suficientes em 'input()'.")
-    val = _input_lines[_input_idx]
-    _input_idx += 1
-    return val
+    # 1) usa a próxima linha do painel, se houver
+    if _input_idx < len(_input_lines):
+        val = _input_lines[_input_idx]
+        _input_idx += 1
+        return val
+    # 2) senão, pergunta no navegador
+    r = _js_prompt(prompt or "")
+    return "" if r is None else r
+
 _stdout = io.StringIO()
 _stderr = io.StringIO()
 _sys_stdout, _sys_stderr = sys.stdout, sys.stderr
@@ -311,37 +318,32 @@ if (ano % 4 == 0 and ano % 100 != 0) or (ano % 400 == 0):
 else:
     print(f"{ano} NÃO é bissexto !")`
       },
-      // Para adicionar novos exercícios:
-      // copie o objeto acima, troque id/title/idx e o bloco code (entre crases).
-   { 
-      idx: 301,
-      id: "py-nascimento",
-      title: "Python — Programa que lê o ano de nascimento de 'N' pessoas e informa quantas já são maiores de idade e quantas ainda não.",
-      category: "python",
-      code: `# quantas pessoas sao maiores de idade
+
+      {
+        idx: 301,
+        id: "py-nascimento",
+        title: "Python — Programa que lê o ano de nascimento de 'N' pessoas e informa quantas já são maiores de idade e quantas ainda não.",
+        category: "python",
+        code: `# quantas pessoas sao maiores de idade
 from datetime import date
 ano_atual = date.today().year
 
 qtd = int(input('Quantas pessoas? '))
-maiores = menores = iguais = 0
+maiores = menores = 0
 
 for i in range(1, qtd + 1):
     nascimento = int(input(f'Ano de nascimento {i}: '))
     idade = ano_atual - nascimento
-    print(idade)
-    if idade > 18:
+    if idade >= 18:    # 18 já é maior
         maiores += 1
-    elif idade < 18:
-        menores += 1
     else:
-        iguais += 1
+        menores += 1
 
 print('____________________________________________')
-print(f'MAIORES DE 18 ANOS: {maiores}')
-print(f'MENORES DE 18 ANOS: {menores}')
-print(f'IGUAIS A 18 ANOS: {iguais}')
+print(f'MAIORES DE IDADE: {maiores}')
+print(f'MENORES DE IDADE: {menores}')
 print('____________________________________________')`
-}
+      }
     ];
 
     const list = document.getElementById('list');
@@ -359,7 +361,7 @@ print('____________________________________________')`
           <button class="btn toggle-code" data-open="0">ver código</button>
         </div>
         <div class="code-wrap" style="display:none;margin-top:8px">
-          <pre data-lang="python"><code>${(e.code||'').replace(/</g,'&lt;')}</code></pre>
+          <pre data-lang="python"><code>${(e.code||'').replace(/[&<]/g, m => ({'&':'&amp;','<':'&lt;'}[m]))}</code></pre>
         </div>
       `;
 
@@ -404,7 +406,7 @@ print('____________________________________________')`
       });
     });
   </script>
-    <!-- (outros <script> seus aqui) -->
+  <!-- (outros <script> seus aqui) -->
 
   <!-- Fundo animado de grafos -->
   <script>
@@ -479,9 +481,6 @@ print('____________________________________________')`
       requestAnimationFrame(step);
     })();
   </script>
-
-</body>
-</html>
 
 </body>
 </html>
