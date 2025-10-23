@@ -43,7 +43,35 @@
         const stdinTA  = wrap.querySelector('.py-stdin');
         const outDiv   = wrap.querySelector('.py-out');
 
-        btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; };
+        // --- validação automática: conta quantos input() o código pede ---
+        const codeForCount = pre.innerText || "";
+        const requiredInputs = (codeForCount.match(/(^|[^A-Za-z_])input\s*\(/g) || []).length;
+
+        function updateGate(){
+          const provided = stdinTA.value.replace(/\r\n/g,"\n")
+            .split("\n").filter(l => l.trim() !== "").length;
+          if (requiredInputs > 0 && provided < requiredInputs){
+            btnRun.disabled = true;
+            btnRun.title = `Faltam ${requiredInputs - provided} linha(s) para os input()`;
+          } else {
+            btnRun.disabled = false;
+            btnRun.title = "";
+          }
+        }
+        stdinTA.addEventListener('input', updateGate);
+        updateGate();
+
+        // dica automática
+        if (requiredInputs > 0) {
+          const hintEl = document.createElement('div');
+          hintEl.style.fontSize = '12px';
+          hintEl.style.opacity = '0.8';
+          hintEl.style.marginTop = '6px';
+          hintEl.textContent = `Este exercício pede ${requiredInputs} entrada(s). Preencha acima, uma por linha.`;
+          wrap.appendChild(hintEl);
+        }
+
+        btnClear.onclick = () => { stdinTA.value = ""; outDiv.textContent = ""; updateGate(); };
 
         btnRun.onclick = async () => {
           btnRun.disabled = true; outDiv.textContent = "Executando…";
@@ -61,17 +89,23 @@ from js import prompt as _js_prompt
 
 _input_lines = """${inputs}""".splitlines()
 _input_idx = 0
+_prompt_fallbacks = 50  # limite de segurança
 
 def input(prompt=None):
-    global _input_idx, _input_lines
+    global _input_idx, _input_lines, _prompt_fallbacks
     # 1) usa a próxima linha do painel, se houver
     if _input_idx < len(_input_lines):
         val = _input_lines[_input_idx]
         _input_idx += 1
         return val
-    # 2) senão, pergunta no navegador
+    # 2) senão, pergunta no navegador com limite
+    if _prompt_fallbacks <= 0:
+        raise EOFError("Limite de prompts atingido. Preencha o painel de entrada.")
+    _prompt_fallbacks -= 1
     r = _js_prompt(prompt or "")
-    return "" if r is None else r
+    if r is None:  # usuário cancelou
+        raise EOFError("Execução cancelada pelo usuário.")
+    return r
 
 _stdout = io.StringIO()
 _stderr = io.StringIO()
@@ -348,12 +382,13 @@ print('____________________________________________')`
 
     const list = document.getElementById('list');
 
-    // Cards colapsáveis: ver código ⇄ fechar código (SEM botão "Executar código" externo)
+    // Cards colapsáveis: ver código ⇄ fechar código
     function card(e, idx){
       const el = document.createElement('div');
       el.className = 'card ' + (e.category || '');
       const color = EX_COLORS[idx % EX_COLORS.length];
       const titleText = (e.title || '').replace(/^Python\s+—\s+/i, '').trim();
+      const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#39;'}[m]));
 
       el.innerHTML = `
         <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
@@ -361,7 +396,7 @@ print('____________________________________________')`
           <button class="btn toggle-code" data-open="0">ver código</button>
         </div>
         <div class="code-wrap" style="display:none;margin-top:8px">
-          <pre data-lang="python"><code>${(e.code||'').replace(/[&<]/g, m => ({'&':'&amp;','<':'&lt;'}[m]))}</code></pre>
+          <pre data-lang="python"><code>${esc(e.code)}</code></pre>
         </div>
       `;
 
